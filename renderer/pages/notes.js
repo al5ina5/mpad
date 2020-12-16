@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useStats } from '../lib/mstats'
 
 const { db } = global
 

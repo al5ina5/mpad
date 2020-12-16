@@ -29,15 +29,14 @@ const ClipboardPage = ({ stats }) => {
     useEffect(() => {
         const handler = (e) => {
             console.log('Detected copy event.')
-            console.log(e)
-
-            console.log(clipboards)
+            console.log('e', e)
+            console.log('e.detail', e.detail)
 
             setClipboards([e.detail, ...clipboards])
         }
 
-        window.addEventListener('copy', handler)
-        return () => window.removeEventListener('copy', handler)
+        window.addEventListener('clipboardEvent', handler)
+        return () => window.removeEventListener('clipboardEvent', handler)
     }, [clipboards])
 
     return (
@@ -52,6 +51,11 @@ const ClipboardPage = ({ stats }) => {
                         </CopyToClipboard>
                     )
                 })}
+
+                {!clipboards && <p className='text-xs text-gray-400'>Loading...</p>}
+                {clipboards?.length <= 0 && (
+                    <p className='text-xs font-mono font-medium text-gray-400'>No clips found. Copy something!</p>
+                )}
             </div>
         </>
     )

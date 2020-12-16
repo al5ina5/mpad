@@ -10,8 +10,8 @@ const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
 const fs = require('fs-extra')
 const shortid = require('shortid')
-const SHA256 = require('crypto-js/sha256')
 const keytar = require('keytar')
+const CryptoJS = require('crypto-js')
 
 let tray = null
 let window = null
@@ -22,14 +22,27 @@ const path = app.getPath('userData')
 app.dock.hide()
 
 app.on('ready', async () => {
-    await prepareNext('./renderer')
-
     salt = await keytar.getPassword('mpad', 'hash')
-
     if (!salt) {
-        salt = SHA256(shortid.generate())
+        salt = CryptoJS.SHA256(shortid.generate())
         await keytar.setPassword('mpad', 'hash', salt.toString())
     }
+
+    var file = await fs.readFile(join(path, '.db')).catch((e) => console.log('No database detected.'))
+
+    if (file) {
+        try {
+            var crypt = CryptoJS.AES.decrypt(file.toString(), salt)
+            crypt.toString(CryptoJS.enc.Utf8)
+            console.log('Decrypted successfully.')
+        } catch (error) {
+            console.log(error)
+            await fs.rename(join(path, '.db'), `${join(path, '.db')}.${Date.now()}`)
+            console.log('Failed to decrypt. Deleting database.')
+        }
+    }
+
+    await prepareNext('./renderer')
 
     createTray()
     createWindow()

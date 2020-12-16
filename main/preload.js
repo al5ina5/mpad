@@ -8,13 +8,8 @@ const NetworkSpeed = require('network-speed')
 const { join } = require('path')
 const CryptoJS = require('crypto-js')
 
-// Since we disabled nodeIntegration we can reintroduce
-// needed node functionality here
-
 const salt = process.argv.find((arg) => arg.startsWith('salt:')).split(':')[1]
 const dbPath = process.argv.find((arg) => arg.startsWith('dbPath:')).split(':')[1]
-
-console.log(salt)
 
 const encrypt = (message) => {
     return CryptoJS.AES.encrypt(JSON.stringify(message), salt).toString()
@@ -33,16 +28,16 @@ const db = low(adapter)
 
 db.defaults({ clipboards: [], notes: '' }).write()
 
-const CopyEvent = (detail) => new CustomEvent('copy', { detail: detail })
+const CopyEvent = (detail) => new CustomEvent('clipboardEvent', { detail: detail })
 const copyHandler = () => {
     const newClip = { id: shortid.generate(), date: Date.now(), content: clipboard.readText() }
     if (/^\s*$/.test(newClip.content)) return
 
     const latest = db.get('clipboards').sortBy('date').reverse().take(5).value()
     const exists = latest.find((clip) => clip.content === newClip.content)
-
     if (exists) return
 
+    console.log('newClip', newClip)
     window.dispatchEvent(CopyEvent(newClip))
 
     db.get('clipboards').push(newClip).write()
