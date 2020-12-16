@@ -3,21 +3,42 @@ const { join } = require('path')
 const { format } = require('url')
 
 // Packages
-const { BrowserWindow, app, ipcMain, Menu, Tray } = require('electron')
+const { BrowserWindow, app, ipcMain, Menu, Tray, globalShortcut } = require('electron')
 const isDev = require('electron-is-dev')
 const prepareNext = require('electron-next')
-const electronVibrancy = require('elect')
+const low = require('lowdb')
+const FileSync = require('lowdb/adapters/FileSync')
+const fs = require('fs-extra')
+const shortid = require('shortid')
+const SHA256 = require('crypto-js/sha256')
+const keytar = require('keytar')
 
 let tray = null
 let window = null
+let salt = null
+
+const path = app.getPath('userData')
 
 app.dock.hide()
 
 app.on('ready', async () => {
     await prepareNext('./renderer')
 
+    salt = await keytar.getPassword('mpad', 'hash')
+
+    if (!salt) {
+        salt = SHA256(shortid.generate())
+        await keytar.setPassword('mpad', 'hash', salt.toString())
+    }
+
     createTray()
     createWindow()
+})
+
+app.whenReady().then(() => {
+    globalShortcut.register('Shift+CommandOrControl+C', () => {
+        toggleWindow()
+    })
 })
 
 const createWindow = () => {
@@ -32,7 +53,9 @@ const createWindow = () => {
         webPreferences: {
             nodeIntegration: false,
             preload: join(__dirname, 'preload.js'),
-            backgroundThrottling: false
+            additionalArguments: [`dbPath:${path}`, `salt:${salt}`]
+
+            // backgroundThrottling: false
         }
     })
 
@@ -56,57 +79,9 @@ const createWindow = () => {
             window.hide()
         }
     })
-
-    window.on('ready-to-show', function () {
-        // Whole window vibrancy with Material 0 and auto resize
-        electronVibrancy.SetVibrancy(mainWindow, 0)
-
-        // auto resizing vibrant view at {0,0} with size {300,300} with Material 0
-        electronVibrancy.AddView(mainWindow, { Width: 300, Height: 300, X: 0, Y: 0, ResizeMask: 2, Material: 0 })
-
-        // non-resizing vibrant view at {0,0} with size {300,300} with Material 0
-        electronVibrancy.AddView(mainWindow, { Width: 300, Height: 300, X: 0, Y: 0, ResizeMask: 3, Material: 0 })
-
-        //Remove a view
-        var viewId = electronVibrancy.SetVibrancy(mainWindow, 0)
-        electronVibrancy.RemoveView(mainWindow, viewId)
-
-        // Add a view then update it
-        var viewId = electronVibrancy.SetVibrancy(mainWindow, 0)
-        electronVibrancy.UpdateView(mainWindow, { ViewId: viewId, Width: 600, Height: 600 })
-
-        // Multipe views with different materials
-        var viewId1 = electronVibrancy.AddView(mainWindow, {
-            Width: 300,
-            Height: 300,
-            X: 0,
-            Y: 0,
-            ResizeMask: 3,
-            Material: 0
-        })
-        var viewId2 = electronVibrancy.AddView(mainWindow, {
-            Width: 300,
-            Height: 300,
-            X: 300,
-            Y: 0,
-            ResizeMask: 3,
-            Material: 2
-        })
-
-        console.log(viewId1)
-        console.log(viewId2)
-
-        // electronVibrancy.RemoveView(mainWindow,0);
-        // electronVibrancy.RemoveView(mainWindow,1);
-
-        // or
-
-        electronVibrancy.DisableVibrancy(mainWindow)
-    })
 }
-
 const createTray = () => {
-    tray = new Tray(join(__dirname, '../renderer/public/mstats.png'))
+    tray = new Tray(join(__dirname, isDev ? '../renderer/public/mpad-icon.png' : '../renderer/out/mpad-icon.png'))
     tray.on('right-click', toggleWindow)
     tray.on('double-click', toggleWindow)
     tray.on('click', function (event) {

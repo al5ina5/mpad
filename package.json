@@ -1,40 +1,55 @@
 {
-  "name": "with-electron",
-  "productName": "ElectronNext",
-  "version": "1.0.0",
-  "main": "main/index.js",
-  "scripts": {
-    "clean": "rimraf dist renderer/.next renderer/out",
-    "start": "electron .",
-    "build": "next build renderer && next export renderer",
-    "pack-app": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder"
-  },
-  "build": {
-    "asar": true,
-    "files": [
-      "main",
-      "renderer/out"
-    ]
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.1.0",
-    "electron": "^7.1.7",
-    "electron-builder": "^21.2.0",
-    "next": "latest",
-    "postcss-preset-env": "^6.7.0",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
-    "tailwindcss": "^2.0.1"
-  },
-  "dependencies": {
-    "electron-is-dev": "^1.1.0",
-    "electron-next": "^3.1.5",
-    "postcss": "^8.2.1",
-    "pretty-bytes": "^5.4.1",
-    "sass": "^1.30.0",
-    "systeminformation": "^4.31.0",
-    "tailwindcss-filters": "^3.0.0"
-  },
-  "license": "MIT"
+    "name": "mpad",
+    "productName": "mpad",
+    "version": "1.0.0",
+    "main": "main/index.js",
+    "scripts": {
+        "clean": "rimraf dist renderer/.next renderer/out",
+        "start": "electron .",
+        "build": "next build renderer && next export renderer",
+        "pack-app": "npm run build && electron-builder --dir",
+        "dist": "npm run build && electron-builder"
+    },
+    "build": {
+        "asar": true,
+        "files": [
+            "main",
+            "renderer/out"
+        ]
+    },
+    "devDependencies": {
+        "autoprefixer": "^10.1.0",
+        "electron": "^7.1.7",
+        "electron-builder": "^21.2.0",
+        "next": "latest",
+        "postcss-preset-env": "^6.7.0",
+        "react": "^16.12.0",
+        "react-dom": "^16.12.0",
+        "tailwindcss": "^2.0.1"
+    },
+    "dependencies": {
+        "@fullhuman/postcss-purgecss": "^3.0.0",
+        "ace-builds": "^1.4.12",
+        "crypto-js": "^4.0.0",
+        "electron-clipboard-extended": "^1.1.1",
+        "electron-is-dev": "^1.1.0",
+        "electron-next": "^3.1.5",
+        "fs-extra": "^9.0.1",
+        "keytar": "^7.2.0",
+        "lowdb": "^1.0.0",
+        "network-speed": "^2.1.0",
+        "postcss": "^8.2.1",
+        "pretty-bytes": "^5.4.1",
+        "react-ace": "^9.2.1",
+        "react-copy-to-clipboard": "^5.0.2",
+        "react-monaco-editor": "^0.40.0",
+        "react-typed": "^1.2.0",
+        "react-typist": "^2.0.5",
+        "sass": "^1.30.0",
+        "shortid": "^2.2.16",
+        "systeminformation": "^4.31.0",
+        "tailwindcss-filters": "^3.0.0",
+        "typist": "^0.1.0"
+    },
+    "license": "MIT"
 }

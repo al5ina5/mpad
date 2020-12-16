@@ -1,73 +1,60 @@
-import { useStats } from '../lib/mstats'
-import prettyBytes from 'pretty-bytes'
-import { useEffect } from 'react'
+const { db } = global
+import { useEffect, useState } from 'react'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
+import shortid from 'shortid'
 
-const Index = () => {
-    const data = useStats()
+const Clip = ({ content }) => {
+    const [showBanner, setShowBanner] = useState(false)
 
-    useEffect(() => console.log('data', data), data)
+    useEffect(() => {
+        if (showBanner) setTimeout(() => setShowBanner(false), 1000)
+    }, [showBanner])
 
-    if (!data) return 'loading...'
+    if (!content) return <></>
+    return (
+        <div
+            // onClick={() => console.log('123')}
+            className={`${
+                showBanner ? 'bg-gray-200' : 'bg-gray-100'
+            } relative font-mono text-xs max-h-16 overflow-auto transition ease-in-out duration-150 hover:bg-gray-200 px-3 py-2 rounded`}>
+            {content}
+        </div>
+    )
+}
+
+const ClipboardPage = ({ stats }) => {
+    const loadClipboards = db?.get('clipboards').sortBy('date').reverse().take(100).value()
+    const [clipboards, setClipboards] = useState(loadClipboards)
+
+    useEffect(() => {
+        const handler = (e) => {
+            console.log('Detected copy event.')
+            console.log(e)
+
+            console.log(clipboards)
+
+            setClipboards([e.detail, ...clipboards])
+        }
+
+        window.addEventListener('copy', handler)
+        return () => window.removeEventListener('copy', handler)
+    }, [clipboards])
+
     return (
         <>
-            <div className='w-full h-screen flex flex-col backdrop-blur bg-opacity-25 text-shadow-lg'>
-                <div className='w-full flex items-center px-4 py-2 text-xs font-medium border-b space-x-2'>
-                    <a className='text-green-500 cursor-pointer'>CPU</a>
-                    <a className='text-blue-500 cursor-pointer'>RAM</a>
-                    <a className='text-purple-500 cursor-pointer'>System</a>
-                    <a className='text-red-500 cursor-pointer'>Storage</a>
-                </div>
-                <div className='w-full box-border h-screen p-4 text-gray-600 space-y-4 overflow-scroll  hide-scroll-bar'>
-                    <div>
-                        <div className='text-purple-600 text-2xl font-bold'>System</div>
-                        <p>{data.system.manufacturer}</p>
-                        <p>{data.system.model}</p>
-                        <p>{data.system.serial}</p>
-                        <p>{data.system.uuid}</p>
-                    </div>
-
-                    <div>
-                        <div className='text-red-500 text-2xl font-bold'>Storage</div>
-                        {data.fsSize.map((disk, index) => {
-                            if (disk.mount.startsWith('/Volumes'))
-                                return (
-                                    <>
-                                        <p className='flex items-center'>
-                                            <span>{disk.mount}</span>
-                                            <div className='ml-auto' />
-                                            <span className='text-xs font-medium'>
-                                                {prettyBytes(disk.size - disk.used || 0)} /{' '}
-                                                {prettyBytes(disk.size || 0)}
-                                            </span>
-                                        </p>
-                                    </>
-                                )
-                        })}
-                    </div>
-
-                    {/* const total = parseInt(person.archived) + parseInt(person.done)
-
-                            const percentageArchived = (person.archived / total) * 100
-                            const percentageDone = (person.done / total) * 100 */}
-
-                    <div>
-                        <div className='text-blue-500 text-2xl font-bold'>RAM</div>
-                        {/* <div>
-                            <p>{prettyBytes(data.mem.total)}</p>
-                            <p>{prettyBytes(data.mem.free)}</p>
-                        </div> */}
-                        <div className='block h-8 rounded-lg overflow-hidden shadow'>
-                            <div
-                                style={{ width: `${(data.mem?.free / data.mem?.total) * 100}%` }}
-                                className='block h-full bg-purple-400'>
-                                {' '}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div className='space-y-2'>
+                {clipboards?.map((clip, index) => {
+                    return (
+                        <CopyToClipboard key={clip.id} text={clip.content}>
+                            <button onClick={(e) => e.stopPropagation()} className='outline-none w-full text-left'>
+                                <Clip content={clip.content} />
+                            </button>
+                        </CopyToClipboard>
+                    )
+                })}
             </div>
         </>
     )
 }
 
-export default Index
+export default ClipboardPage
