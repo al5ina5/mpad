@@ -1,6 +1,6 @@
 # mpad
 
-A fully-encrypted, multi-use, micro clipboard manager and note-pad for macOS.
+📝 A fully-encrypted, multi-use, micro clipboard manager and note-pad for macOS.
 
 # Download
 
